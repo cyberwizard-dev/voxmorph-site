@@ -402,7 +402,7 @@ document.querySelectorAll(".buy-link").forEach(a=>{
     "&body="+encodeURIComponent("Hi, I'd like to buy a VoxMorph license"+(plan?" — "+plan:"")+".\n\nMy platform (Mac / Windows): \n");
 });
 
-const REASONS={not_found:"We couldn't find that code. Check for typos.",revoked:"This license has been revoked — please contact support.",expired:"This license has expired — contact us to renew.",invalid_request:"That doesn't look like a valid code."};
+const REASONS={not_found:"We couldn't find that code. Check for typos.",revoked:"This license has been revoked — please contact support.",expired:"This license has expired — contact us to renew.",invalid_request:"That doesn't look like a valid code.",rate_limited:"Too many tries. Wait a minute, then try again."};
 const input=document.getElementById("code");
 input.addEventListener("input",()=>{const p=input.selectionStart;input.value=input.value.toUpperCase().replace(/\s+/g,"");input.setSelectionRange(p,p);});
 input.addEventListener("keydown",e=>{if(e.key==="Enter")checkCode();});
