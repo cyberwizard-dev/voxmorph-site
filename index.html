@@ -90,13 +90,22 @@ section{position:relative;padding:72px 0}
 .shot .cap span{color:var(--muted);font-size:14px;display:block}
 
 /* pricing */
-.price-card{max-width:440px;margin:0 auto;background:linear-gradient(180deg,rgba(124,77,255,.12),rgba(31,200,232,.06));
-  border:1px solid rgba(124,77,255,.3);border-radius:24px;padding:40px;text-align:center}
-.price{font-family:'Space Grotesk';font-size:56px;font-weight:700;margin:10px 0 2px}
-.price small{display:block;color:var(--muted);font-size:16px;font-weight:400;margin-bottom:22px}
-.price-card ul{list-style:none;text-align:left;margin:24px 0;display:grid;gap:12px}
+.price-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:820px;margin:0 auto;align-items:stretch}
+@media(max-width:720px){.price-grid{grid-template-columns:1fr;max-width:440px}}
+.price-card{position:relative;background:var(--card);border:1px solid var(--card-brd);
+  border-radius:24px;padding:38px;text-align:center;display:flex;flex-direction:column}
+.price-card.feature{background:linear-gradient(180deg,rgba(124,77,255,.14),rgba(31,200,232,.06));
+  border:1.5px solid rgba(124,77,255,.45);box-shadow:0 20px 60px rgba(124,77,255,.18)}
+.price-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--grad);
+  color:#07070d;font-family:'Space Grotesk';font-weight:700;font-size:12px;letter-spacing:.04em;
+  padding:6px 16px;border-radius:20px;text-transform:uppercase;white-space:nowrap}
+.plan-name{font-family:'Space Grotesk';font-weight:600;color:var(--p2);font-size:15px;letter-spacing:.05em;text-transform:uppercase}
+.price{font-family:'Space Grotesk';font-size:44px;font-weight:700;margin:12px 0 0;line-height:1}
+.price small{display:block;color:var(--muted);font-size:15px;font-weight:400;margin-top:8px}
+.price-card ul{list-style:none;text-align:left;margin:24px 0;display:grid;gap:12px;flex:1}
 .price-card li{display:flex;gap:11px;align-items:flex-start;color:#d6d9e8;font-size:15px}
 .price-card li .ck{color:var(--ok);flex:0 0 auto;margin-top:3px}
+.price-note{text-align:center;color:var(--muted);font-size:14px;margin-top:26px}
 
 /* download gate */
 .gate{max-width:620px;margin:0 auto;background:var(--card);border:1px solid var(--card-brd);border-radius:22px;padding:38px}
@@ -223,22 +232,36 @@ footer a{color:var(--p2)}
   <div class="wrap">
     <div class="sec-head">
       <div class="eyebrow">Pricing</div>
-      <h2>One license, yours to keep</h2>
-      <p>A single payment. Contact us to buy and we'll send your code right away.</p>
+      <h2>Simple pricing</h2>
+      <p>Go monthly, or pay once for lifetime. Message us to buy and we'll send your code right away.</p>
     </div>
-    <div class="price-card">
-      <div class="eyebrow" style="text-align:center">VoxMorph · Full app</div>
-      <div class="price" id="priceAmount">$20</div>
-      <small>one-time payment</small>
-      <ul>
-        <li><span class="ck">✓</span> Real-time voice changer + all effects & presets</li>
-        <li><span class="ck">✓</span> AI voice cloning and voice training</li>
-        <li><span class="ck">✓</span> macOS & Windows</li>
-        <li><span class="ck">✓</span> Guided setup and updates</li>
-        <li><span class="ck">✓</span> Direct support from the developer</li>
-      </ul>
-      <a class="btn btn-primary" style="width:100%;justify-content:center" href="#get" id="buyBtn">Get your license</a>
+    <div class="price-grid">
+      <div class="price-card">
+        <div class="plan-name">Monthly</div>
+        <div class="price">₦20,000<small>per month</small></div>
+        <ul>
+          <li><span class="ck">✓</span> Full app — all effects & AI voices</li>
+          <li><span class="ck">✓</span> AI voice cloning & voice training</li>
+          <li><span class="ck">✓</span> macOS & Windows</li>
+          <li><span class="ck">✓</span> Guided setup & updates</li>
+          <li><span class="ck">✓</span> Direct support</li>
+        </ul>
+        <a class="btn btn-ghost buy-link" style="width:100%;justify-content:center" href="#get">Choose Monthly</a>
+      </div>
+      <div class="price-card feature">
+        <div class="price-badge">Best value</div>
+        <div class="plan-name">Lifetime</div>
+        <div class="price">₦150,000<small>one-time — pay once, keep forever</small></div>
+        <ul>
+          <li><span class="ck">✓</span> Everything in Monthly</li>
+          <li><span class="ck">✓</span> One payment, no renewals</li>
+          <li><span class="ck">✓</span> All future updates included</li>
+          <li><span class="ck">✓</span> Priority support</li>
+        </ul>
+        <a class="btn btn-primary buy-link" style="width:100%;justify-content:center" href="#get">Choose Lifetime</a>
+      </div>
     </div>
+    <p class="price-note">Message us to pay, and we'll send your license code right away.</p>
   </div>
 </section>
 
@@ -316,7 +339,14 @@ const mailto = "mailto:" + CONTACT_EMAIL +
   "?subject=" + encodeURIComponent("VoxMorph license — purchase") +
   "&body=" + encodeURIComponent("Hi, I'd like to buy a VoxMorph license. Please send me the price and payment details.\n\nMy platform (Mac / Windows): \n");
 document.getElementById("contactBtn").href = mailto;
-document.getElementById("buyBtn").href = mailto;
+document.querySelectorAll(".buy-link").forEach(a => {
+  const plan = a.textContent.includes("Lifetime") ? "Lifetime (₦150,000 one-time)"
+             : a.textContent.includes("Monthly") ? "Monthly (₦20,000/month)" : "";
+  a.href = "mailto:" + CONTACT_EMAIL +
+    "?subject=" + encodeURIComponent("VoxMorph license — " + (plan || "purchase")) +
+    "&body=" + encodeURIComponent("Hi, I'd like to buy a VoxMorph license" + (plan ? " — " + plan : "") +
+      ".\n\nMy platform (Mac / Windows): \n");
+});
 
 const REASONS = {
   not_found:"We couldn't find that license code. Check for typos.",
