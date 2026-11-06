@@ -3,402 +3,436 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VoxMorph — Real-time voice changer for calls</title>
-<meta name="description" content="Change your voice live on WhatsApp, Zoom, Teams and Meet. Fun effects and AI voice cloning. macOS and Windows.">
+<title>VoxMorph — Change your voice, live on any call</title>
+<meta name="description" content="A real-time voice changer for calls. Fun effects, believable presets and AI voice cloning on WhatsApp, Zoom, Teams, Discord and Meet. macOS and Windows.">
 <link rel="icon" type="image/png" href="img/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Archivo+Expanded:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0b0b14; --bg2:#12121f; --card:rgba(255,255,255,.04); --card-brd:rgba(255,255,255,.09);
-  --txt:#eef0f7; --muted:#9aa0b5; --p1:#7C4DFF; --p2:#1FC8E8; --ok:#30c88a; --err:#ff6b6b;
-  --grad:linear-gradient(135deg,#7C4DFF 0%,#1FC8E8 100%);
+  --ink:#141019; --ink2:#1b1522; --night:#241a2e; --bone:#f2ece1; --bone2:#e7ded0;
+  --signal:#ff4433; --signal-dk:#e23325; --dim:#9a93a6; --txt:#efe9f2;
+  --line:rgba(242,236,225,.12); --line-s:rgba(242,236,225,.22);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--txt);font-family:Inter,system-ui,sans-serif;line-height:1.6;overflow-x:hidden}
-h1,h2,h3,.brand{font-family:'Space Grotesk',sans-serif;letter-spacing:-.02em}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{background:var(--ink);color:var(--txt);font-family:'Archivo',system-ui,sans-serif;font-size:17px;line-height:1.6;overflow-x:hidden}
+.x{font-family:'Archivo Expanded','Archivo',sans-serif}
 a{color:inherit;text-decoration:none}
-.wrap{max-width:1140px;margin:0 auto;padding:0 24px}
-.btn{display:inline-flex;align-items:center;gap:9px;border:0;cursor:pointer;font-family:'Space Grotesk';
-  font-weight:600;font-size:16px;padding:14px 26px;border-radius:14px;transition:.2s;white-space:nowrap}
-.btn-primary{background:var(--grad);color:#07070d;box-shadow:0 8px 30px rgba(124,77,255,.35)}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(124,77,255,.5)}
-.btn-ghost{background:var(--card);color:var(--txt);border:1px solid var(--card-brd)}
-.btn-ghost:hover{background:rgba(255,255,255,.08)}
-.glow{position:absolute;border-radius:50%;filter:blur(120px);opacity:.5;z-index:0;pointer-events:none}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+h1,h2,h3{font-family:'Archivo Expanded','Archivo',sans-serif;font-weight:700;line-height:1.02;letter-spacing:-.01em}
+
+/* live dot */
+.live{display:inline-flex;align-items:center;gap:9px;font-weight:600;font-size:13px;letter-spacing:.14em;color:var(--signal)}
+.live .dot{width:9px;height:9px;border-radius:50%;background:var(--signal);box-shadow:0 0 0 0 rgba(255,68,51,.7);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,68,51,.6)}70%{box-shadow:0 0 0 11px rgba(255,68,51,0)}100%{box-shadow:0 0 0 0 rgba(255,68,51,0)}}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;gap:10px;cursor:pointer;border:0;font-family:'Archivo';font-weight:600;
+  font-size:16px;padding:15px 28px;border-radius:4px;transition:transform .15s,background .15s,color .15s}
+.btn-sig{background:var(--signal);color:#1a0c0a}
+.btn-sig:hover{background:#ff5949;transform:translateY(-1px)}
+.btn-bone{background:var(--bone);color:#1a1420}
+.btn-bone:hover{background:#fff;transform:translateY(-1px)}
+.btn-line{background:transparent;color:var(--txt);border:1.5px solid var(--line-s)}
+.btn-line:hover{border-color:var(--bone);background:rgba(242,236,225,.04)}
 
 /* nav */
-nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(11,11,20,.7);
-  border-bottom:1px solid rgba(255,255,255,.06)}
-nav .wrap{display:flex;align-items:center;justify-content:space-between;height:68px}
-.brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:21px}
-.brand img{width:38px;height:38px;border-radius:10px}
-.nav-links{display:flex;align-items:center;gap:30px}
-.nav-links a{color:var(--muted);font-size:15px;transition:.2s}
-.nav-links a:hover{color:var(--txt)}
-.nav-cta{padding:10px 20px;font-size:15px}
-@media(max-width:780px){.nav-links a:not(.nav-cta){display:none}}
+nav{position:sticky;top:0;z-index:50;background:rgba(20,16,25,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:72px}
+.word{display:flex;align-items:center;gap:13px;font-family:'Archivo Expanded';font-weight:800;font-size:21px;letter-spacing:-.02em}
+.word img{width:34px;height:34px;border-radius:8px}
+.navl{display:flex;align-items:center;gap:34px;font-weight:500;font-size:15px}
+.navl a.q{color:var(--dim)}.navl a.q:hover{color:var(--txt)}
+@media(max-width:760px){.navl a.q{display:none}}
 
 /* hero */
-.hero{position:relative;text-align:center;padding:90px 0 70px}
-.hero .glow.a{width:620px;height:620px;background:#7C4DFF;top:-220px;left:-120px}
-.hero .glow.b{width:520px;height:520px;background:#1FC8E8;top:-120px;right:-120px}
-.hero-icon{width:120px;height:120px;border-radius:28px;margin:0 auto 26px;display:block;position:relative;z-index:1;
-  box-shadow:0 20px 60px rgba(124,77,255,.4)}
-.hero h1{font-size:clamp(38px,6vw,68px);line-height:1.05;position:relative;z-index:1;margin-bottom:20px}
-.hero h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.hero p.sub{font-size:clamp(17px,2.2vw,21px);color:var(--muted);max-width:620px;margin:0 auto 34px;position:relative;z-index:1}
-.hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
-.badges{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;margin-top:30px;color:var(--muted);font-size:14px;position:relative;z-index:1}
-.badges span{display:flex;align-items:center;gap:7px}
+.hero{position:relative;padding:84px 0 70px;overflow:hidden;isolation:isolate}
+.hero::before{content:"";position:absolute;inset:0;z-index:0;
+  background:url("img/app.png") center 30%/cover no-repeat;opacity:.9}
+.hero::after{content:"";position:absolute;inset:0;z-index:1;background:
+  linear-gradient(98deg,rgba(20,16,25,.97) 0%,rgba(20,16,25,.93) 40%,rgba(20,16,25,.66) 72%,rgba(20,16,25,.9) 100%),
+  linear-gradient(180deg,rgba(20,16,25,.45) 0%,rgba(20,16,25,.1) 30%,rgba(20,16,25,.2) 70%,var(--ink) 100%)}
+.hero .wrap{position:relative;z-index:2}
+.hero h1{font-size:clamp(44px,8.2vw,104px);font-weight:800;max-width:14ch}
+.hero h1 .out{color:transparent;-webkit-text-stroke:1.6px var(--bone);text-stroke:1.6px var(--bone)}
+.hero .lede{max-width:50ch;color:var(--dim);font-size:clamp(17px,2.1vw,20px);margin:26px 0 34px}
+.hero .lede b{color:var(--txt);font-weight:600}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.hero-meta{margin-top:30px;display:flex;gap:26px;flex-wrap:wrap;color:var(--dim);font-size:14.5px;font-weight:500}
+.hero-meta span{display:flex;align-items:center;gap:8px}
+.hero-meta svg{width:16px;height:16px;fill:var(--dim)}
+/* waveform */
+.wave{position:relative;z-index:1;margin-top:60px;height:190px;display:flex;align-items:center;gap:4px;
+  padding:0 2px;mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.wave i{flex:1;background:var(--bone);border-radius:3px;opacity:.5;transform-origin:center;height:14%}
+.wave i.hot{background:var(--signal);opacity:1}
+.wave.live i{animation:bar 1.3s ease-in-out infinite}
+@keyframes bar{0%,100%{transform:scaleY(.5)}50%{transform:scaleY(1)}}
 
-/* sections */
-section{position:relative;padding:72px 0}
-.eyebrow{color:var(--p2);font-family:'Space Grotesk';font-weight:600;font-size:14px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
-.sec-head{text-align:center;max-width:680px;margin:0 auto 52px}
-.sec-head h2{font-size:clamp(28px,4vw,42px);margin-bottom:14px}
-.sec-head p{color:var(--muted);font-size:17px}
+/* section frame */
+section{position:relative;padding:92px 0}
+.rule{height:40px;background-repeat:repeat-x;background-size:22px 40px;opacity:.5;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='40'><path d='M1 20 Q5.5 4 11 20 T22 20' fill='none' stroke='%23f2ece1' stroke-width='1.2' opacity='.4'/></svg>")}
+.kicker{font-family:'Archivo Expanded';font-weight:700;font-size:14px;color:var(--signal);margin-bottom:16px}
+.h2{font-size:clamp(30px,4.6vw,52px);font-weight:700;max-width:18ch;margin-bottom:18px}
+.sub{color:var(--dim);font-size:18px;max-width:58ch}
 
-/* features */
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-@media(max-width:860px){.grid{grid-template-columns:1fr 1fr}}
-@media(max-width:560px){.grid{grid-template-columns:1fr}}
-.card{background:var(--card);border:1px solid var(--card-brd);border-radius:18px;padding:28px;transition:.25s}
-.card:hover{transform:translateY(-4px);border-color:rgba(124,77,255,.4);background:rgba(255,255,255,.055)}
-.card .ic{width:50px;height:50px;border-radius:13px;background:var(--grad);display:grid;place-items:center;margin-bottom:18px;font-size:24px}
-.card h3{font-size:19px;margin-bottom:8px}
-.card p{color:var(--muted);font-size:15px}
+/* signal path */
+.chain{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:stretch;gap:0;margin-top:52px;
+  border:1px solid var(--line);border-radius:10px;overflow:hidden}
+@media(max-width:800px){.chain{grid-template-columns:1fr;gap:0}}
+.node{padding:34px 30px;background:var(--ink2)}
+.node .n{font-family:'Archivo Expanded';font-weight:700;color:var(--signal);font-size:15px;margin-bottom:12px}
+.node h3{font-size:21px;margin-bottom:8px}
+.node p{color:var(--dim);font-size:15.5px}
+.arrow{display:grid;place-items:center;background:var(--ink2);color:var(--signal);padding:0 10px;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+.arrow svg{width:26px;height:26px;stroke:var(--signal);fill:none;stroke-width:2}
+@media(max-width:800px){.arrow{padding:14px;border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.arrow svg{transform:rotate(90deg)}}
 
-/* steps */
-.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;counter-reset:s}
-@media(max-width:780px){.steps{grid-template-columns:1fr}}
-.step{background:var(--card);border:1px solid var(--card-brd);border-radius:18px;padding:30px;position:relative}
-.step::before{counter-increment:s;content:counter(s);font-family:'Space Grotesk';font-weight:700;font-size:15px;
-  width:34px;height:34px;border-radius:50%;background:var(--grad);color:#07070d;display:grid;place-items:center;margin-bottom:16px}
-.step h3{font-size:18px;margin-bottom:8px}
-.step p{color:var(--muted);font-size:15px}
+/* features — editorial, asymmetric */
+.feat{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:52px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+@media(max-width:720px){.feat{grid-template-columns:1fr}}
+.cell{background:var(--ink);padding:40px 36px}
+.cell.big{grid-column:1 / -1}
+.cell .g{width:40px;height:40px;margin-bottom:20px;stroke:var(--signal);fill:none;stroke-width:1.7}
+.cell h3{font-size:22px;margin-bottom:10px}
+.cell.big h3{font-size:26px}
+.cell p{color:var(--dim);font-size:16px;max-width:56ch}
 
-/* screenshots */
-.shots{display:grid;grid-template-columns:1.4fr 1fr;gap:22px}
-@media(max-width:780px){.shots{grid-template-columns:1fr}}
-.shot{border:1px solid var(--card-brd);border-radius:16px;overflow:hidden;background:var(--bg2);position:relative}
-.shot img{width:100%;display:block}
-.shot .cap{padding:16px 20px;border-top:1px solid var(--card-brd)}
-.shot .cap b{font-family:'Space Grotesk'}
-.shot .cap span{color:var(--muted);font-size:14px;display:block}
+/* shot */
+.shotwrap{margin-top:52px;display:grid;grid-template-columns:1.5fr 1fr;gap:26px;align-items:start}
+@media(max-width:820px){.shotwrap{grid-template-columns:1fr}}
+.frame{border:1px solid var(--line-s);border-radius:12px;overflow:hidden;background:#0d0a12;box-shadow:0 30px 70px rgba(0,0,0,.5)}
+.frame .bar{height:34px;background:var(--ink2);display:flex;align-items:center;gap:7px;padding:0 14px;border-bottom:1px solid var(--line)}
+.frame .bar b{width:11px;height:11px;border-radius:50%;background:#3a3342;display:block}
+.frame img{width:100%;display:block}
+.shotcap{align-self:center}
+.shotcap h3{font-size:24px;margin-bottom:12px}
+.shotcap p{color:var(--dim);margin-bottom:14px}
+.shotcap ul{list-style:none;display:grid;gap:10px}
+.shotcap li{display:flex;gap:11px;color:#d9d3df;font-size:15.5px}
+.shotcap li svg{width:18px;height:18px;stroke:var(--signal);fill:none;stroke-width:2;flex:0 0 auto;margin-top:3px}
 
-/* pricing */
-.price-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;max-width:820px;margin:0 auto;align-items:stretch}
-@media(max-width:720px){.price-grid{grid-template-columns:1fr;max-width:440px}}
-.price-card{position:relative;background:var(--card);border:1px solid var(--card-brd);
-  border-radius:24px;padding:38px;text-align:center;display:flex;flex-direction:column}
-.price-card.feature{background:linear-gradient(180deg,rgba(124,77,255,.14),rgba(31,200,232,.06));
-  border:1.5px solid rgba(124,77,255,.45);box-shadow:0 20px 60px rgba(124,77,255,.18)}
-.price-badge{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--grad);
-  color:#07070d;font-family:'Space Grotesk';font-weight:700;font-size:12px;letter-spacing:.04em;
-  padding:6px 16px;border-radius:20px;text-transform:uppercase;white-space:nowrap}
-.plan-name{font-family:'Space Grotesk';font-weight:600;color:var(--p2);font-size:15px;letter-spacing:.05em;text-transform:uppercase}
-.price{font-family:'Space Grotesk';font-size:44px;font-weight:700;margin:12px 0 0;line-height:1}
-.price small{display:block;color:var(--muted);font-size:15px;font-weight:400;margin-top:8px}
-.price-card ul{list-style:none;text-align:left;margin:24px 0;display:grid;gap:12px;flex:1}
-.price-card li{display:flex;gap:11px;align-items:flex-start;color:#d6d9e8;font-size:15px}
-.price-card li .ck{color:var(--ok);flex:0 0 auto;margin-top:3px}
-.price-note{text-align:center;color:var(--muted);font-size:14px;margin-top:26px}
+/* pricing — bone passes */
+.pricing{background:var(--bone);color:#1a1420}
+.pricing .kicker{color:var(--signal-dk)}
+.pricing .h2{color:#1a1420}
+.pricing .sub{color:#5b5560}
+.passes{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:52px;max-width:860px}
+@media(max-width:720px){.passes{grid-template-columns:1fr;max-width:460px}}
+.pass{position:relative;background:#fbf8f2;border:1.5px solid var(--bone2);border-radius:12px;padding:38px;display:flex;flex-direction:column}
+.pass.best{border-color:var(--signal);box-shadow:0 20px 50px rgba(226,51,37,.14)}
+.pass .tag{position:absolute;top:26px;right:26px;background:var(--signal);color:#fff;font-family:'Archivo Expanded';
+  font-weight:700;font-size:11px;letter-spacing:.08em;padding:5px 11px;border-radius:3px}
+.pass .plan{font-family:'Archivo Expanded';font-weight:700;font-size:16px;color:#1a1420}
+.pass .amt{font-family:'Archivo Expanded';font-weight:800;font-size:46px;color:#1a1420;margin:14px 0 2px;line-height:1}
+.pass .per{color:#726b76;font-size:15px;margin-bottom:24px}
+.pass ul{list-style:none;display:grid;gap:12px;margin-bottom:28px;flex:1}
+.pass li{display:flex;gap:11px;color:#352f3d;font-size:15.5px}
+.pass li svg{width:18px;height:18px;stroke:var(--signal-dk);fill:none;stroke-width:2.2;flex:0 0 auto;margin-top:3px}
+.pass .perf{border-top:1px dashed var(--bone2);padding-top:18px;margin-bottom:18px;color:#726b76;font-size:13.5px}
+.noteline{text-align:center;color:#726b76;font-size:15px;margin-top:30px}
+.noteline a{color:var(--signal-dk);font-weight:600}
 
 /* download gate */
-.gate{max-width:620px;margin:0 auto;background:var(--card);border:1px solid var(--card-brd);border-radius:22px;padding:38px}
-.gate h3{font-size:24px;margin-bottom:8px;text-align:center}
-.gate .lead{color:var(--muted);text-align:center;margin-bottom:26px;font-size:15px}
-.code-row{display:flex;gap:12px}
-@media(max-width:520px){.code-row{flex-direction:column}}
-.code-row input{flex:1;background:#0a0a12;border:1.5px solid var(--card-brd);border-radius:13px;color:var(--txt);
-  padding:15px 18px;font-size:16px;font-family:'Space Grotesk';letter-spacing:.03em;text-transform:uppercase;outline:none;transition:.2s}
-.code-row input:focus{border-color:var(--p1);box-shadow:0 0 0 4px rgba(124,77,255,.15)}
-.gate-msg{margin-top:16px;font-size:15px;min-height:22px;text-align:center}
-.gate-msg.ok{color:var(--ok)}.gate-msg.err{color:var(--err)}.gate-msg.busy{color:var(--muted)}
-.downloads{display:none;margin-top:28px;gap:14px;grid-template-columns:1fr 1fr}
-@media(max-width:520px){.downloads{grid-template-columns:1fr}}
-.downloads.show{display:grid}
-.dl{display:flex;flex-direction:column;align-items:center;gap:6px;padding:22px;border-radius:16px;
-  background:#0a0a12;border:1px solid var(--card-brd);text-align:center;transition:.2s}
-.dl.ready:hover{border-color:var(--p2);transform:translateY(-3px)}
-.dl .os{font-family:'Space Grotesk';font-weight:600;font-size:18px}
-.dl .meta{color:var(--muted);font-size:13px}
-.dl.soon{opacity:.55;cursor:not-allowed}
-.dl .pill{margin-top:6px;font-size:12px;padding:3px 10px;border-radius:20px;background:var(--grad);color:#07070d;font-weight:600}
-.dl.soon .pill{background:rgba(255,255,255,.12);color:var(--muted)}
+.gate{margin-top:48px;max-width:640px;border:1px solid var(--line-s);border-radius:12px;background:var(--ink2);padding:40px}
+.gate .lab{font-weight:600;font-size:15px;margin-bottom:12px;color:var(--txt)}
+.coderow{display:flex;gap:12px}
+@media(max-width:520px){.coderow{flex-direction:column}}
+.coderow input{flex:1;background:#0d0a12;border:1.5px solid var(--line-s);border-radius:5px;color:var(--txt);
+  font-family:'Archivo';font-size:16px;letter-spacing:.04em;padding:16px 18px;outline:none;text-transform:uppercase}
+.coderow input:focus{border-color:var(--signal)}
+.gmsg{min-height:22px;margin-top:15px;font-size:15px}
+.gmsg.ok{color:#58d39a}.gmsg.err{color:#ff7a6e}.gmsg.busy{color:var(--dim)}
+.oses{display:none;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px}
+.oses.show{display:grid}
+@media(max-width:520px){.oses{grid-template-columns:1fr}}
+.os{display:flex;align-items:center;gap:15px;padding:20px;border:1px solid var(--line-s);border-radius:8px;background:#0d0a12;transition:border-color .15s,transform .15s}
+.os:hover{border-color:var(--signal);transform:translateY(-2px)}
+.os svg{width:30px;height:30px;fill:var(--bone);flex:0 0 auto}
+.os .t{font-weight:600;font-size:16.5px}.os .m{color:var(--dim);font-size:13px}
+.os.pending{opacity:.6}.os.pending:hover{border-color:var(--line-s);transform:none}
 
 /* faq */
-.faq{max-width:760px;margin:0 auto;display:grid;gap:14px}
-details{background:var(--card);border:1px solid var(--card-brd);border-radius:14px;padding:4px 22px}
-summary{cursor:pointer;padding:16px 0;font-family:'Space Grotesk';font-weight:600;font-size:17px;list-style:none;display:flex;justify-content:space-between;align-items:center}
-summary::-webkit-details-marker{display:none}
-summary::after{content:'+';color:var(--p2);font-size:22px}
-details[open] summary::after{content:'–'}
-details p{color:var(--muted);padding:0 0 18px;font-size:15px}
+.faq{margin-top:46px;max-width:820px;border-top:1px solid var(--line)}
+.faq details{border-bottom:1px solid var(--line)}
+.faq summary{cursor:pointer;list-style:none;padding:24px 0;font-family:'Archivo Expanded';font-weight:600;font-size:18px;display:flex;justify-content:space-between;gap:20px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:'+';color:var(--signal);font-size:24px;line-height:1}
+.faq details[open] summary::after{content:'\2013'}
+.faq p{color:var(--dim);padding:0 0 24px;max-width:70ch;font-size:16px}
 
-footer{border-top:1px solid rgba(255,255,255,.06);padding:46px 0;text-align:center;color:var(--muted);font-size:14px}
-footer .brand{justify-content:center;margin-bottom:14px;font-size:18px}
-footer a{color:var(--p2)}
-.legal{margin-top:16px;font-size:13px;opacity:.7;max-width:640px;margin-left:auto;margin-right:auto}
+footer{border-top:1px solid var(--line);padding:56px 0 48px}
+footer .wrap{display:flex;justify-content:space-between;gap:30px;flex-wrap:wrap;align-items:flex-start}
+footer .word{margin-bottom:12px}
+.fmuted{color:var(--dim);font-size:14.5px;max-width:40ch}
+.fright{text-align:right;color:var(--dim);font-size:14.5px}
+.fright a{color:var(--txt);font-weight:500}
+@media(max-width:620px){.fright{text-align:left}}
+.legal{color:var(--dim);font-size:12.5px;opacity:.7;margin-top:30px;max-width:72ch}
+
+@media(prefers-reduced-motion:reduce){*{animation:none!important}.wave i{transform:none!important}}
 </style>
 </head>
 <body>
 
 <nav><div class="wrap">
-  <a class="brand" href="#top"><img src="img/icon.png" alt="VoxMorph">VoxMorph</a>
-  <div class="nav-links">
-    <a href="#features">Features</a>
-    <a href="#how">How it works</a>
-    <a href="#pricing">Pricing</a>
-    <a class="btn btn-primary nav-cta" href="#get">Get a license</a>
+  <a class="word" href="#top"><img src="img/icon.png" alt="">VoxMorph</a>
+  <div class="navl">
+    <a class="q" href="#how">How it works</a>
+    <a class="q" href="#plans">Plans</a>
+    <a class="btn btn-line" style="padding:10px 18px;font-size:14.5px" href="#download">Enter a code</a>
   </div>
 </div></nav>
 
 <header class="hero" id="top">
-  <div class="glow a"></div><div class="glow b"></div>
   <div class="wrap">
-    <img class="hero-icon" src="img/icon.png" alt="VoxMorph icon">
-    <h1>Change your voice,<br><span class="g">live on any call.</span></h1>
-    <p class="sub">VoxMorph transforms your voice in real time on WhatsApp, Zoom, Teams, Discord and Meet — fun effects, believable presets, and AI voice cloning. For macOS and Windows.</p>
+    <span class="live"><span class="dot"></span>LIVE ON YOUR CALLS</span>
+    <h1 style="margin-top:22px">Sound like<br><span class="out">anyone.</span></h1>
+    <p class="lede">VoxMorph rebuilds your voice in real time — believable man/woman presets, wild effects, and full <b>AI voice cloning</b> — and feeds it straight into WhatsApp, Zoom, Teams, Discord and Meet.</p>
     <div class="hero-cta">
-      <a class="btn btn-primary" href="#get">Get a license →</a>
-      <a class="btn btn-ghost" href="#download">I have a code</a>
+      <a class="btn btn-sig" href="#plans">Get a license</a>
+      <a class="btn btn-line" href="#download">I already have a code</a>
     </div>
-    <div class="badges">
-      <span>🍎 macOS (Apple Silicon)</span>
-      <span>🪟 Windows</span>
-      <span>⚡ Real-time</span>
-      <span>🔒 License-protected</span>
+    <div class="hero-meta">
+      <span><svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 1 5 5v5a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5zM5 11a7 7 0 0 0 14 0M12 18v4"/></svg>Processed on your Mac or PC</span>
+      <span>macOS (Apple Silicon)</span>
+      <span>Windows 10 / 11</span>
     </div>
+  </div>
+  <div class="wrap">
+    <div class="wave live" id="wave" aria-hidden="true"></div>
   </div>
 </header>
 
-<section id="features">
+<div class="wrap"><div class="rule"></div></div>
+
+<section id="how">
   <div class="wrap">
-    <div class="sec-head">
-      <div class="eyebrow">Features</div>
-      <h2>Everything you need to sound like someone else</h2>
-      <p>From quick effects to a fully trained AI voice — all processed live on your own computer.</p>
-    </div>
-    <div class="grid">
-      <div class="card"><div class="ic">🎭</div><h3>AI voice cloning</h3><p>Sound like a completely different person. Use a ready-made voice or train your own from a few minutes of audio.</p></div>
-      <div class="card"><div class="ic">🎚️</div><h3>Live effects & presets</h3><p>Woman, Man, Deep, Robot, Alien and more — adjust pitch and formants in real time with one click.</p></div>
-      <div class="card"><div class="ic">📞</div><h3>Works in your call apps</h3><p>Shows up as a microphone in WhatsApp, Zoom, Teams, Discord, Google Meet and Skype.</p></div>
-      <div class="card"><div class="ic">⚡</div><h3>Low latency</h3><p>Tuned automatically to your computer for the shortest possible delay, so conversations feel natural.</p></div>
-      <div class="card"><div class="ic">🧰</div><h3>Sets itself up</h3><p>Installs the virtual audio cable, downloads the voice engine and checks your mic — guided, step by step.</p></div>
-      <div class="card"><div class="ic">💻</div><h3>Runs on your machine</h3><p>Your audio never leaves your computer. No streaming your voice to a server.</p></div>
+    <div class="kicker">The signal path</div>
+    <h2 class="h2">From your mic to their ear, reshaped in a heartbeat.</h2>
+    <p class="sub">VoxMorph sits between your microphone and your call app. You talk; it transforms; they hear the new voice. No one on the other end installs a thing.</p>
+    <div class="chain">
+      <div class="node"><div class="n">You speak</div><h3>Your microphone</h3><p>Any mic — your laptop's, a headset, whatever you already use.</p></div>
+      <div class="arrow"><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+      <div class="node"><div class="n">VoxMorph</div><h3>Pick a voice</h3><p>A preset, an effect, or a cloned voice. Tune the pitch and press start.</p></div>
+      <div class="arrow"><svg viewBox="0 0 24 24"><path d="M4 12h15M13 6l6 6-6 6"/></svg></div>
+      <div class="node"><div class="n">They hear</div><h3>Your call app</h3><p>Choose VoxMorph as the mic in WhatsApp, Zoom, Teams, Discord or Meet.</p></div>
     </div>
   </div>
 </section>
 
-<section id="how" style="background:var(--bg2)">
+<section style="padding-top:0">
   <div class="wrap">
-    <div class="sec-head">
-      <div class="eyebrow">How it works</div>
-      <h2>Three steps to your new voice</h2>
-      <p>Licenses are sold directly, so you always deal with a real person.</p>
-    </div>
-    <div class="steps">
-      <div class="step"><h3>Get your code</h3><p>Message us to buy a license. We send you a license code (looks like VC-XXXXX-XXXXX-XXXXX-XXXXX).</p></div>
-      <div class="step"><h3>Unlock & download</h3><p>Enter your code below to unlock the download for macOS or Windows.</p></div>
-      <div class="step"><h3>Activate & talk</h3><p>Open the app, paste your code, pick a voice and press Start. Choose VoxMorph as your mic in the call app.</p></div>
-    </div>
-  </div>
-</section>
-
-<section id="screens">
-  <div class="wrap">
-    <div class="sec-head">
-      <div class="eyebrow">A look inside</div>
-      <h2>Simple, powerful, yours</h2>
-    </div>
-    <div class="shots">
-      <div class="shot">
-        <img src="img/app.png" alt="VoxMorph main window">
-        <div class="cap"><b>The main window</b><span>Pick an effect or an AI voice, set the pitch, press Start.</span></div>
+    <div class="kicker">What you get</div>
+    <h2 class="h2">A real voice studio, pointed at your calls.</h2>
+    <div class="feat">
+      <div class="cell big">
+        <svg class="g" viewBox="0 0 24 24"><path d="M3 12h2l2-7 4 18 3-11 2 5h5"/></svg>
+        <h3>AI voice cloning</h3>
+        <p>Load a ready-made voice or train your own from a few minutes of clean audio, then speak as that person live. The clone keeps your words and timing — only the voice changes.</p>
       </div>
-      <div class="shot">
-        <img src="img/setup.png" alt="VoxMorph setup assistant">
-        <div class="cap"><b>Guided setup</b><span>The app installs and checks everything it needs for you.</span></div>
+      <div class="cell">
+        <svg class="g" viewBox="0 0 24 24"><circle cx="9" cy="11" r="4"/><circle cx="15" cy="11" r="4"/><path d="M4 18c1.5-2 3.5-2 5-2M15 16c1.5 0 3.5 0 5 2"/></svg>
+        <h3>Instant presets & effects</h3>
+        <p>Man, woman, deep, higher, robot, alien and more — believable or ridiculous, your call. One click, no setup.</p>
+      </div>
+      <div class="cell">
+        <svg class="g" viewBox="0 0 24 24"><path d="M5 4h4l2 5-3 2a11 11 0 0 0 5 5l2-3 5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg>
+        <h3>Works where you call</h3>
+        <p>Shows up as a microphone in every major app. The person you're calling needs nothing installed.</p>
+      </div>
+      <div class="cell">
+        <svg class="g" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>
+        <h3>Tuned for low delay</h3>
+        <p>VoxMorph measures your computer and picks the fastest settings it can run, so conversations stay natural.</p>
+      </div>
+      <div class="cell">
+        <svg class="g" viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/><path d="M9 12l2 2 4-4"/></svg>
+        <h3>Private & licensed</h3>
+        <p>Your audio never leaves your machine. Each license is yours, tied to your computers, and sold directly by us.</p>
       </div>
     </div>
   </div>
 </section>
 
-<section id="pricing" style="background:var(--bg2)">
+<div class="wrap"><div class="rule"></div></div>
+
+<section>
   <div class="wrap">
-    <div class="sec-head">
-      <div class="eyebrow">Pricing</div>
-      <h2>Simple pricing</h2>
-      <p>Go monthly, or pay once for lifetime. Message us to buy and we'll send your code right away.</p>
-    </div>
-    <div class="price-grid">
-      <div class="price-card">
-        <div class="plan-name">Monthly</div>
-        <div class="price">₦20,000<small>per month</small></div>
+    <div class="kicker">A look inside</div>
+    <h2 class="h2">Built to be obvious, not fiddly.</h2>
+    <div class="shotwrap">
+      <div class="frame">
+        <div class="bar"><b></b><b></b><b></b></div>
+        <img src="img/setup.png" alt="The VoxMorph guided setup checking everything it needs">
+      </div>
+      <div class="shotcap">
+        <h3>It sets itself up.</h3>
+        <p>First launch walks you through everything — so you're changing your voice in minutes, not fighting with audio settings.</p>
         <ul>
-          <li><span class="ck">✓</span> Full app — all effects & AI voices</li>
-          <li><span class="ck">✓</span> AI voice cloning & voice training</li>
-          <li><span class="ck">✓</span> macOS & Windows</li>
-          <li><span class="ck">✓</span> Guided setup & updates</li>
-          <li><span class="ck">✓</span> Direct support</li>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg>Installs the free audio routing it needs</li>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg>Checks your microphone works</li>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg>Downloads the voice engine once</li>
         </ul>
-        <a class="btn btn-ghost buy-link" style="width:100%;justify-content:center" href="#get">Choose Monthly</a>
-      </div>
-      <div class="price-card feature">
-        <div class="price-badge">Best value</div>
-        <div class="plan-name">Lifetime</div>
-        <div class="price">₦150,000<small>one-time — pay once, keep forever</small></div>
-        <ul>
-          <li><span class="ck">✓</span> Everything in Monthly</li>
-          <li><span class="ck">✓</span> One payment, no renewals</li>
-          <li><span class="ck">✓</span> All future updates included</li>
-          <li><span class="ck">✓</span> Priority support</li>
-        </ul>
-        <a class="btn btn-primary buy-link" style="width:100%;justify-content:center" href="#get">Choose Lifetime</a>
       </div>
     </div>
-    <p class="price-note">Message us to pay, and we'll send your license code right away.</p>
+  </div>
+</section>
+
+<section class="pricing" id="plans">
+  <div class="wrap">
+    <div class="kicker">Plans</div>
+    <h2 class="h2">Two ways in.</h2>
+    <p class="sub">Pay monthly, or once for life. Message us to buy and your license code comes straight back.</p>
+    <div class="passes">
+      <div class="pass">
+        <div class="plan">Monthly</div>
+        <div class="amt">&#8358;20,000</div>
+        <div class="per">per month</div>
+        <ul>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg>The full app — every effect & AI voice</li>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg>Voice cloning & training</li>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg>macOS & Windows</li>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg>Updates & direct support</li>
+        </ul>
+        <a class="btn btn-line buy-link" style="justify-content:center;color:#1a1420;border-color:#cbc2b4" href="#">Choose monthly</a>
+      </div>
+      <div class="pass best">
+        <span class="tag">BEST VALUE</span>
+        <div class="plan">Lifetime</div>
+        <div class="amt">&#8358;150,000</div>
+        <div class="per">one payment, yours forever</div>
+        <ul>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg>Everything in monthly</li>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg>No renewals, ever</li>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg>All future updates included</li>
+          <li><svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-11"/></svg>Priority support</li>
+        </ul>
+        <a class="btn btn-sig buy-link" style="justify-content:center;color:#fff" href="#">Choose lifetime</a>
+      </div>
+    </div>
+    <p class="noteline">Questions first? Email <a href="mailto:thatwebdeveloper1@gmail.com">thatwebdeveloper1@gmail.com</a>.</p>
   </div>
 </section>
 
 <section id="download">
   <div class="wrap">
-    <div class="sec-head">
-      <div class="eyebrow">Download</div>
-      <h2>Already have a license code?</h2>
-      <p>Enter it to unlock your download. Your code isn't used up here — you'll still activate it in the app.</p>
-    </div>
+    <div class="kicker">Download</div>
+    <h2 class="h2">Have a code? Unlock your download.</h2>
+    <p class="sub">Enter the license code we sent you. Checking it here doesn't use it up — you'll still activate it in the app.</p>
     <div class="gate">
-      <h3>Unlock your download</h3>
-      <p class="lead">Enter the license code you received.</p>
-      <div class="code-row">
-        <input id="codeInput" type="text" placeholder="VC-XXXXX-XXXXX-XXXXX-XXXXX" autocomplete="off" spellcheck="false" maxlength="29">
-        <button class="btn btn-primary" id="checkBtn" onclick="checkCode()">Unlock</button>
+      <div class="lab">Your license code</div>
+      <div class="coderow">
+        <input id="code" type="text" placeholder="VC-XXXXX-XXXXX-XXXXX-XXXXX" autocomplete="off" spellcheck="false" maxlength="29">
+        <button class="btn btn-sig" id="go" onclick="checkCode()">Unlock</button>
       </div>
-      <div class="gate-msg" id="gateMsg"></div>
-      <div class="downloads" id="downloads">
-        <a class="dl ready" id="dlMac" href="#" target="_blank" rel="noopener">
-          <div style="font-size:30px">🍎</div><div class="os">macOS</div>
-          <div class="meta">Apple Silicon (M1–M4) · ~285 MB</div><div class="pill">Download</div>
+      <div class="gmsg" id="msg"></div>
+      <div class="oses" id="oses">
+        <a class="os" id="mac" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24"><path d="M16.3 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.8-3-.8c-1.5 0-2.9.9-3.7 2.3-1.6 2.7-.4 6.8 1.1 9 .8 1.1 1.6 2.3 2.8 2.3 1.1 0 1.5-.7 2.9-.7s1.7.7 2.9.7 2-1.1 2.7-2.1c.9-1.2 1.2-2.4 1.2-2.5-.1 0-2.4-.9-2.5-3.9zM14.1 5.4c.6-.8 1-1.8.9-2.9-.9 0-2 .6-2.6 1.3-.6.7-1.1 1.7-1 2.7 1 .1 2-.4 2.7-1.1z"/></svg>
+          <div><div class="t">macOS</div><div class="m">Apple Silicon · M1 and newer</div></div>
         </a>
-        <div class="dl soon" id="dlWin">
-          <div style="font-size:30px">🪟</div><div class="os">Windows</div>
-          <div class="meta">Windows 10 / 11 (64-bit)</div><div class="pill">Coming soon</div>
-        </div>
+        <a class="os" id="win" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24"><path d="M3 5.5 10.5 4.4v7H3zM10.5 12.6v7L3 18.5v-6zM11.6 4.2 21 3v8.4h-9.4zM21 12.6V21l-9.4-1.3v-7.1z"/></svg>
+          <div><div class="t">Windows</div><div class="m">Windows 10 / 11 · 64-bit</div></div>
+        </a>
       </div>
     </div>
   </div>
 </section>
 
-<section id="get" style="background:var(--bg2)">
-  <div class="wrap" style="text-align:center">
-    <div class="sec-head" style="margin-bottom:30px">
-      <div class="eyebrow">Get a license</div>
-      <h2>Ready to get started?</h2>
-      <p>Message us to buy. We'll reply with your license code, then you download and activate.</p>
-    </div>
-    <a class="btn btn-primary" id="contactBtn" href="#" style="font-size:18px;padding:16px 34px">✉️ Contact to buy a license</a>
-    <p style="color:var(--muted);margin-top:16px;font-size:14px">or email <a href="mailto:thatwebdeveloper1@gmail.com" style="color:var(--p2)">thatwebdeveloper1@gmail.com</a></p>
-  </div>
-</section>
-
-<section id="faq">
+<section style="padding-top:0">
   <div class="wrap">
-    <div class="sec-head"><div class="eyebrow">FAQ</div><h2>Good to know</h2></div>
+    <div class="kicker">Before you ask</div>
+    <h2 class="h2">The short answers.</h2>
     <div class="faq">
-      <details><summary>What do I need to run it?</summary><p>A Mac with Apple Silicon (M1 or newer) on macOS 12+, or a 64-bit Windows 10/11 PC. For calls you'll want headphones. The app installs the free virtual audio cable it needs during setup.</p></details>
-      <details><summary>How do I use it on a call?</summary><p>Start VoxMorph and pick a voice. In your call app (WhatsApp, Zoom, Teams, Meet…), choose VoxMorph's audio cable as the microphone. That's it — the other person hears your changed voice.</p></details>
-      <details><summary>Is my voice sent to a server?</summary><p>No. All processing happens on your own computer. Your audio never leaves your machine.</p></details>
-      <details><summary>Can I use it on more than one computer?</summary><p>Each license works on the number of computers it was issued for (usually one). You can move it to a new computer by deactivating the old one in the app.</p></details>
-      <details><summary>Is cloning someone's voice allowed?</summary><p>Only use your own voice, a voice you have permission to use, or a fictional character. Impersonating a real person without consent is illegal in many places.</p></details>
+      <details><summary>What do I need to run it?</summary><p>A Mac with Apple Silicon (M1 or newer) on macOS 12 or later, or a 64-bit Windows 10/11 PC. For calls, use headphones so your own call audio doesn't echo back into the mic. The app installs the free audio cable it needs during setup.</p></details>
+      <details><summary>How do I actually use it on a call?</summary><p>Open VoxMorph and pick a voice. In your call app, choose VoxMorph's audio cable as the microphone. That's the whole trick — the person you're calling hears your new voice and installs nothing.</p></details>
+      <details><summary>Does my voice go to a server?</summary><p>No. Everything runs on your own computer. Your audio never leaves your machine.</p></details>
+      <details><summary>Can I move my license to another computer?</summary><p>Yes. Deactivate it on the old computer inside the app, then activate on the new one. Each license covers the number of computers it was issued for.</p></details>
+      <details><summary>Is it okay to clone someone's voice?</summary><p>Only use your own voice, a voice you have permission to use, or a fictional character. Pretending to be a real person without their consent is illegal in many places.</p></details>
     </div>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    <div class="brand"><img src="img/favicon.png" style="width:26px;height:26px;border-radius:7px" alt="">VoxMorph</div>
-    <div>Real-time voice changer for macOS & Windows</div>
-    <div style="margin-top:10px">Licenses & support: <a href="mailto:thatwebdeveloper1@gmail.com">thatwebdeveloper1@gmail.com</a></div>
-    <p class="legal">VoxMorph is proprietary software, licensed not sold. Use it only with your own voice or a voice you have permission to use. © 2026 VoxMorph. All rights reserved.</p>
+    <div>
+      <div class="word"><img src="img/favicon.png" style="width:28px;height:28px;border-radius:7px" alt="">VoxMorph</div>
+      <p class="fmuted">A real-time voice changer for calls. Built for macOS and Windows.</p>
+    </div>
+    <div class="fright">
+      Licenses & support<br>
+      <a href="mailto:thatwebdeveloper1@gmail.com">thatwebdeveloper1@gmail.com</a>
+    </div>
   </div>
+  <div class="wrap"><p class="legal">VoxMorph is proprietary software, licensed not sold. Use it only with your own voice or a voice you have permission to use; impersonating a real person without consent is illegal in many places. © 2026 VoxMorph. All rights reserved.</p></div>
 </footer>
 
 <script>
-const SUPABASE_URL = "https://rikmmimshspdwbmvcngk.supabase.co";
-const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpa21taW1zaHNwZHdibXZjbmdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM4OTY0NjIsImV4cCI6MjEwOTQ3MjQ2Mn0.biUGzJy7jwNiQU-_uiAo8nFw9RmdfDsVF8LhEgw_suU";
-const MAC_URL = "https://github.com/cyberwizard-dev/voxmorph-downloads/releases/download/v1.0/VoxMorph-1.0-mac-apple-silicon.zip";
-const CONTACT_EMAIL = "thatwebdeveloper1@gmail.com";
+const SUPABASE_URL="https://rikmmimshspdwbmvcngk.supabase.co";
+const SUPABASE_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpa21taW1zaHNwZHdibXZjbmdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM4OTY0NjIsImV4cCI6MjEwOTQ3MjQ2Mn0.biUGzJy7jwNiQU-_uiAo8nFw9RmdfDsVF8LhEgw_suU";
+const MAC_URL="https://github.com/cyberwizard-dev/voxmorph-downloads/releases/download/v1.0/VoxMorph-1.0-mac-apple-silicon.zip";
+const WIN_URL="https://github.com/cyberwizard-dev/voxmorph-downloads/releases/download/v1.0/VoxMorph-1.0-windows.zip";
+const EMAIL="thatwebdeveloper1@gmail.com";
 
-// contact buttons -> pre-filled email
-const mailto = "mailto:" + CONTACT_EMAIL +
-  "?subject=" + encodeURIComponent("VoxMorph license — purchase") +
-  "&body=" + encodeURIComponent("Hi, I'd like to buy a VoxMorph license. Please send me the price and payment details.\n\nMy platform (Mac / Windows): \n");
-document.getElementById("contactBtn").href = mailto;
-document.querySelectorAll(".buy-link").forEach(a => {
-  const plan = a.textContent.includes("Lifetime") ? "Lifetime (₦150,000 one-time)"
-             : a.textContent.includes("Monthly") ? "Monthly (₦20,000/month)" : "";
-  a.href = "mailto:" + CONTACT_EMAIL +
-    "?subject=" + encodeURIComponent("VoxMorph license — " + (plan || "purchase")) +
-    "&body=" + encodeURIComponent("Hi, I'd like to buy a VoxMorph license" + (plan ? " — " + plan : "") +
-      ".\n\nMy platform (Mac / Windows): \n");
+// waveform: build voice-like bars, mark peaks hot
+(function(){
+  const w=document.getElementById("wave"); if(!w) return;
+  const N=Math.min(72, Math.floor(window.innerWidth/18));
+  for(let i=0;i<N;i++){
+    const b=document.createElement("i");
+    const t=i/N, env=Math.sin(t*Math.PI);
+    const h=8+Math.abs(Math.sin(i*0.7)+0.5*Math.sin(i*1.9))*46*(0.4+env);
+    b.style.height=Math.min(100,h)+"%";
+    b.style.animationDelay=(i*0.045)+"s";
+    if(h>42) b.classList.add("hot");
+    w.appendChild(b);
+  }
+})();
+
+// plan buttons -> prefilled email
+document.querySelectorAll(".buy-link").forEach(a=>{
+  const plan=a.textContent.toLowerCase().includes("lifetime")?"Lifetime (₦150,000 one-time)":
+             a.textContent.toLowerCase().includes("monthly")?"Monthly (₦20,000/month)":"";
+  a.href="mailto:"+EMAIL+"?subject="+encodeURIComponent("VoxMorph license — "+(plan||"purchase"))+
+    "&body="+encodeURIComponent("Hi, I'd like to buy a VoxMorph license"+(plan?" — "+plan:"")+".\n\nMy platform (Mac / Windows): \n");
 });
 
-const REASONS = {
-  not_found:"We couldn't find that license code. Check for typos.",
-  revoked:"This license has been revoked. Please contact support.",
-  expired:"This license has expired. Please contact support to renew.",
-  invalid_request:"That doesn't look like a valid code format."
-};
-
-function fmt(v){
-  // light formatting help: uppercase, keep as typed
-  return v.toUpperCase().replace(/\s+/g,"");
-}
-const input = document.getElementById("codeInput");
-input.addEventListener("input", e => { const p=input.selectionStart; input.value=fmt(input.value); input.setSelectionRange(p,p); });
-input.addEventListener("keydown", e => { if(e.key==="Enter") checkCode(); });
-
-function setMsg(text, cls){ const m=document.getElementById("gateMsg"); m.textContent=text; m.className="gate-msg "+(cls||""); }
+const REASONS={not_found:"We couldn't find that code. Check for typos.",revoked:"This license has been revoked — please contact support.",expired:"This license has expired — contact us to renew.",invalid_request:"That doesn't look like a valid code."};
+const input=document.getElementById("code");
+input.addEventListener("input",()=>{const p=input.selectionStart;input.value=input.value.toUpperCase().replace(/\s+/g,"");input.setSelectionRange(p,p);});
+input.addEventListener("keydown",e=>{if(e.key==="Enter")checkCode();});
+function setMsg(t,c){const m=document.getElementById("msg");m.textContent=t;m.className="gmsg "+(c||"");}
 
 async function checkCode(){
-  const code = fmt(input.value).trim();
-  const btn = document.getElementById("checkBtn");
-  document.getElementById("downloads").classList.remove("show");
-  if(code.length < 10){ setMsg("Enter your full license code.","err"); return; }
-  btn.disabled = true; setMsg("Checking…","busy");
+  const code=input.value.toUpperCase().replace(/\s+/g,"").trim();
+  const btn=document.getElementById("go");
+  document.getElementById("oses").classList.remove("show");
+  if(code.length<10){setMsg("Enter your full license code.","err");return;}
+  btn.disabled=true;setMsg("Checking…","busy");
   try{
-    const res = await fetch(SUPABASE_URL + "/rest/v1/rpc/check_license", {
-      method:"POST",
-      headers:{ "Content-Type":"application/json", "apikey":SUPABASE_ANON, "Authorization":"Bearer "+SUPABASE_ANON },
-      body: JSON.stringify({ p_key: code })
-    });
-    if(!res.ok) throw new Error("http "+res.status);
-    const data = await res.json();
-    if(data && data.valid){
-      unlock();
-      try{ localStorage.setItem("vm_unlocked","1"); }catch(e){}
-    }else{
-      setMsg(REASONS[data && data.reason] || "That license code isn't valid.","err");
-    }
-  }catch(err){
-    setMsg("Couldn't reach the license server. Check your connection and try again.","err");
-  }finally{ btn.disabled = false; }
+    const r=await fetch(SUPABASE_URL+"/rest/v1/rpc/check_license",{method:"POST",
+      headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON,"Authorization":"Bearer "+SUPABASE_ANON},
+      body:JSON.stringify({p_key:code})});
+    if(!r.ok) throw new Error(r.status);
+    const d=await r.json();
+    if(d&&d.valid){unlock();try{localStorage.setItem("vm_ok","1");}catch(e){}}
+    else setMsg(REASONS[d&&d.reason]||"That code isn't valid.","err");
+  }catch(e){setMsg("Couldn't reach the license server. Check your connection and try again.","err");}
+  finally{btn.disabled=false;}
 }
-
 function unlock(){
-  setMsg("✓ License verified — your download is unlocked below.","ok");
-  document.getElementById("dlMac").href = MAC_URL;
-  document.getElementById("downloads").classList.add("show");
-  document.getElementById("downloads").scrollIntoView({behavior:"smooth", block:"center"});
+  setMsg("Verified. Your downloads are below.","ok");
+  document.getElementById("mac").href=MAC_URL;
+  document.getElementById("win").href=WIN_URL;
+  document.getElementById("oses").classList.add("show");
+  document.getElementById("oses").scrollIntoView({behavior:"smooth",block:"center"});
 }
-
-// remember an unlock on this device
-try{ if(localStorage.getItem("vm_unlocked")==="1"){ document.getElementById("dlMac").href=MAC_URL; document.getElementById("downloads").classList.add("show"); } }catch(e){}
+try{if(localStorage.getItem("vm_ok")==="1"){document.getElementById("mac").href=MAC_URL;document.getElementById("win").href=WIN_URL;document.getElementById("oses").classList.add("show");}}catch(e){}
 </script>
 </body>
 </html>
