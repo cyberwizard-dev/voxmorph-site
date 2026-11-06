@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoxMorph — Real-time voice changer for calls</title>
+<meta name="description" content="Change your voice live on WhatsApp, Zoom, Teams and Meet. Fun effects and AI voice cloning. macOS and Windows.">
+<link rel="icon" type="image/png" href="img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0b14; --bg2:#12121f; --card:rgba(255,255,255,.04); --card-brd:rgba(255,255,255,.09);
+  --txt:#eef0f7; --muted:#9aa0b5; --p1:#7C4DFF; --p2:#1FC8E8; --ok:#30c88a; --err:#ff6b6b;
+  --grad:linear-gradient(135deg,#7C4DFF 0%,#1FC8E8 100%);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:Inter,system-ui,sans-serif;line-height:1.6;overflow-x:hidden}
+h1,h2,h3,.brand{font-family:'Space Grotesk',sans-serif;letter-spacing:-.02em}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+.btn{display:inline-flex;align-items:center;gap:9px;border:0;cursor:pointer;font-family:'Space Grotesk';
+  font-weight:600;font-size:16px;padding:14px 26px;border-radius:14px;transition:.2s;white-space:nowrap}
+.btn-primary{background:var(--grad);color:#07070d;box-shadow:0 8px 30px rgba(124,77,255,.35)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(124,77,255,.5)}
+.btn-ghost{background:var(--card);color:var(--txt);border:1px solid var(--card-brd)}
+.btn-ghost:hover{background:rgba(255,255,255,.08)}
+.glow{position:absolute;border-radius:50%;filter:blur(120px);opacity:.5;z-index:0;pointer-events:none}
+
+/* nav */
+nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(11,11,20,.7);
+  border-bottom:1px solid rgba(255,255,255,.06)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:68px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:700;font-size:21px}
+.brand img{width:38px;height:38px;border-radius:10px}
+.nav-links{display:flex;align-items:center;gap:30px}
+.nav-links a{color:var(--muted);font-size:15px;transition:.2s}
+.nav-links a:hover{color:var(--txt)}
+.nav-cta{padding:10px 20px;font-size:15px}
+@media(max-width:780px){.nav-links a:not(.nav-cta){display:none}}
+
+/* hero */
+.hero{position:relative;text-align:center;padding:90px 0 70px}
+.hero .glow.a{width:620px;height:620px;background:#7C4DFF;top:-220px;left:-120px}
+.hero .glow.b{width:520px;height:520px;background:#1FC8E8;top:-120px;right:-120px}
+.hero-icon{width:120px;height:120px;border-radius:28px;margin:0 auto 26px;display:block;position:relative;z-index:1;
+  box-shadow:0 20px 60px rgba(124,77,255,.4)}
+.hero h1{font-size:clamp(38px,6vw,68px);line-height:1.05;position:relative;z-index:1;margin-bottom:20px}
+.hero h1 .g{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.sub{font-size:clamp(17px,2.2vw,21px);color:var(--muted);max-width:620px;margin:0 auto 34px;position:relative;z-index:1}
+.hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
+.badges{display:flex;gap:22px;justify-content:center;flex-wrap:wrap;margin-top:30px;color:var(--muted);font-size:14px;position:relative;z-index:1}
+.badges span{display:flex;align-items:center;gap:7px}
+
+/* sections */
+section{position:relative;padding:72px 0}
+.eyebrow{color:var(--p2);font-family:'Space Grotesk';font-weight:600;font-size:14px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+.sec-head{text-align:center;max-width:680px;margin:0 auto 52px}
+.sec-head h2{font-size:clamp(28px,4vw,42px);margin-bottom:14px}
+.sec-head p{color:var(--muted);font-size:17px}
+
+/* features */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:860px){.grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--card-brd);border-radius:18px;padding:28px;transition:.25s}
+.card:hover{transform:translateY(-4px);border-color:rgba(124,77,255,.4);background:rgba(255,255,255,.055)}
+.card .ic{width:50px;height:50px;border-radius:13px;background:var(--grad);display:grid;place-items:center;margin-bottom:18px;font-size:24px}
+.card h3{font-size:19px;margin-bottom:8px}
+.card p{color:var(--muted);font-size:15px}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;counter-reset:s}
+@media(max-width:780px){.steps{grid-template-columns:1fr}}
+.step{background:var(--card);border:1px solid var(--card-brd);border-radius:18px;padding:30px;position:relative}
+.step::before{counter-increment:s;content:counter(s);font-family:'Space Grotesk';font-weight:700;font-size:15px;
+  width:34px;height:34px;border-radius:50%;background:var(--grad);color:#07070d;display:grid;place-items:center;margin-bottom:16px}
+.step h3{font-size:18px;margin-bottom:8px}
+.step p{color:var(--muted);font-size:15px}
+
+/* screenshots */
+.shots{display:grid;grid-template-columns:1.4fr 1fr;gap:22px}
+@media(max-width:780px){.shots{grid-template-columns:1fr}}
+.shot{border:1px solid var(--card-brd);border-radius:16px;overflow:hidden;background:var(--bg2);position:relative}
+.shot img{width:100%;display:block}
+.shot .cap{padding:16px 20px;border-top:1px solid var(--card-brd)}
+.shot .cap b{font-family:'Space Grotesk'}
+.shot .cap span{color:var(--muted);font-size:14px;display:block}
+
+/* pricing */
+.price-card{max-width:440px;margin:0 auto;background:linear-gradient(180deg,rgba(124,77,255,.12),rgba(31,200,232,.06));
+  border:1px solid rgba(124,77,255,.3);border-radius:24px;padding:40px;text-align:center}
+.price{font-family:'Space Grotesk';font-size:56px;font-weight:700;margin:10px 0 2px}
+.price small{display:block;color:var(--muted);font-size:16px;font-weight:400;margin-bottom:22px}
+.price-card ul{list-style:none;text-align:left;margin:24px 0;display:grid;gap:12px}
+.price-card li{display:flex;gap:11px;align-items:flex-start;color:#d6d9e8;font-size:15px}
+.price-card li .ck{color:var(--ok);flex:0 0 auto;margin-top:3px}
+
+/* download gate */
+.gate{max-width:620px;margin:0 auto;background:var(--card);border:1px solid var(--card-brd);border-radius:22px;padding:38px}
+.gate h3{font-size:24px;margin-bottom:8px;text-align:center}
+.gate .lead{color:var(--muted);text-align:center;margin-bottom:26px;font-size:15px}
+.code-row{display:flex;gap:12px}
+@media(max-width:520px){.code-row{flex-direction:column}}
+.code-row input{flex:1;background:#0a0a12;border:1.5px solid var(--card-brd);border-radius:13px;color:var(--txt);
+  padding:15px 18px;font-size:16px;font-family:'Space Grotesk';letter-spacing:.03em;text-transform:uppercase;outline:none;transition:.2s}
+.code-row input:focus{border-color:var(--p1);box-shadow:0 0 0 4px rgba(124,77,255,.15)}
+.gate-msg{margin-top:16px;font-size:15px;min-height:22px;text-align:center}
+.gate-msg.ok{color:var(--ok)}.gate-msg.err{color:var(--err)}.gate-msg.busy{color:var(--muted)}
+.downloads{display:none;margin-top:28px;gap:14px;grid-template-columns:1fr 1fr}
+@media(max-width:520px){.downloads{grid-template-columns:1fr}}
+.downloads.show{display:grid}
+.dl{display:flex;flex-direction:column;align-items:center;gap:6px;padding:22px;border-radius:16px;
+  background:#0a0a12;border:1px solid var(--card-brd);text-align:center;transition:.2s}
+.dl.ready:hover{border-color:var(--p2);transform:translateY(-3px)}
+.dl .os{font-family:'Space Grotesk';font-weight:600;font-size:18px}
+.dl .meta{color:var(--muted);font-size:13px}
+.dl.soon{opacity:.55;cursor:not-allowed}
+.dl .pill{margin-top:6px;font-size:12px;padding:3px 10px;border-radius:20px;background:var(--grad);color:#07070d;font-weight:600}
+.dl.soon .pill{background:rgba(255,255,255,.12);color:var(--muted)}
+
+/* faq */
+.faq{max-width:760px;margin:0 auto;display:grid;gap:14px}
+details{background:var(--card);border:1px solid var(--card-brd);border-radius:14px;padding:4px 22px}
+summary{cursor:pointer;padding:16px 0;font-family:'Space Grotesk';font-weight:600;font-size:17px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:'+';color:var(--p2);font-size:22px}
+details[open] summary::after{content:'–'}
+details p{color:var(--muted);padding:0 0 18px;font-size:15px}
+
+footer{border-top:1px solid rgba(255,255,255,.06);padding:46px 0;text-align:center;color:var(--muted);font-size:14px}
+footer .brand{justify-content:center;margin-bottom:14px;font-size:18px}
+footer a{color:var(--p2)}
+.legal{margin-top:16px;font-size:13px;opacity:.7;max-width:640px;margin-left:auto;margin-right:auto}
+</style>
+</head>
+<body>
+
+<nav><div class="wrap">
+  <a class="brand" href="#top"><img src="img/icon.png" alt="VoxMorph">VoxMorph</a>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#how">How it works</a>
+    <a href="#pricing">Pricing</a>
+    <a class="btn btn-primary nav-cta" href="#get">Get a license</a>
+  </div>
+</div></nav>
+
+<header class="hero" id="top">
+  <div class="glow a"></div><div class="glow b"></div>
+  <div class="wrap">
+    <img class="hero-icon" src="img/icon.png" alt="VoxMorph icon">
+    <h1>Change your voice,<br><span class="g">live on any call.</span></h1>
+    <p class="sub">VoxMorph transforms your voice in real time on WhatsApp, Zoom, Teams, Discord and Meet — fun effects, believable presets, and AI voice cloning. For macOS and Windows.</p>
+    <div class="hero-cta">
+      <a class="btn btn-primary" href="#get">Get a license →</a>
+      <a class="btn btn-ghost" href="#download">I have a code</a>
+    </div>
+    <div class="badges">
+      <span>🍎 macOS (Apple Silicon)</span>
+      <span>🪟 Windows</span>
+      <span>⚡ Real-time</span>
+      <span>🔒 License-protected</span>
+    </div>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Features</div>
+      <h2>Everything you need to sound like someone else</h2>
+      <p>From quick effects to a fully trained AI voice — all processed live on your own computer.</p>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="ic">🎭</div><h3>AI voice cloning</h3><p>Sound like a completely different person. Use a ready-made voice or train your own from a few minutes of audio.</p></div>
+      <div class="card"><div class="ic">🎚️</div><h3>Live effects & presets</h3><p>Woman, Man, Deep, Robot, Alien and more — adjust pitch and formants in real time with one click.</p></div>
+      <div class="card"><div class="ic">📞</div><h3>Works in your call apps</h3><p>Shows up as a microphone in WhatsApp, Zoom, Teams, Discord, Google Meet and Skype.</p></div>
+      <div class="card"><div class="ic">⚡</div><h3>Low latency</h3><p>Tuned automatically to your computer for the shortest possible delay, so conversations feel natural.</p></div>
+      <div class="card"><div class="ic">🧰</div><h3>Sets itself up</h3><p>Installs the virtual audio cable, downloads the voice engine and checks your mic — guided, step by step.</p></div>
+      <div class="card"><div class="ic">💻</div><h3>Runs on your machine</h3><p>Your audio never leaves your computer. No streaming your voice to a server.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="how" style="background:var(--bg2)">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">How it works</div>
+      <h2>Three steps to your new voice</h2>
+      <p>Licenses are sold directly, so you always deal with a real person.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><h3>Get your code</h3><p>Message us to buy a license. We send you a license code (looks like VC-XXXXX-XXXXX-XXXXX-XXXXX).</p></div>
+      <div class="step"><h3>Unlock & download</h3><p>Enter your code below to unlock the download for macOS or Windows.</p></div>
+      <div class="step"><h3>Activate & talk</h3><p>Open the app, paste your code, pick a voice and press Start. Choose VoxMorph as your mic in the call app.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="screens">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">A look inside</div>
+      <h2>Simple, powerful, yours</h2>
+    </div>
+    <div class="shots">
+      <div class="shot">
+        <img src="img/app.png" alt="VoxMorph main window">
+        <div class="cap"><b>The main window</b><span>Pick an effect or an AI voice, set the pitch, press Start.</span></div>
+      </div>
+      <div class="shot">
+        <img src="img/setup.png" alt="VoxMorph setup assistant">
+        <div class="cap"><b>Guided setup</b><span>The app installs and checks everything it needs for you.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing" style="background:var(--bg2)">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Pricing</div>
+      <h2>One license, yours to keep</h2>
+      <p>A single payment. Contact us to buy and we'll send your code right away.</p>
+    </div>
+    <div class="price-card">
+      <div class="eyebrow" style="text-align:center">VoxMorph · Full app</div>
+      <div class="price" id="priceAmount">$20</div>
+      <small>one-time payment</small>
+      <ul>
+        <li><span class="ck">✓</span> Real-time voice changer + all effects & presets</li>
+        <li><span class="ck">✓</span> AI voice cloning and voice training</li>
+        <li><span class="ck">✓</span> macOS & Windows</li>
+        <li><span class="ck">✓</span> Guided setup and updates</li>
+        <li><span class="ck">✓</span> Direct support from the developer</li>
+      </ul>
+      <a class="btn btn-primary" style="width:100%;justify-content:center" href="#get" id="buyBtn">Get your license</a>
+    </div>
+  </div>
+</section>
+
+<section id="download">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">Download</div>
+      <h2>Already have a license code?</h2>
+      <p>Enter it to unlock your download. Your code isn't used up here — you'll still activate it in the app.</p>
+    </div>
+    <div class="gate">
+      <h3>Unlock your download</h3>
+      <p class="lead">Enter the license code you received.</p>
+      <div class="code-row">
+        <input id="codeInput" type="text" placeholder="VC-XXXXX-XXXXX-XXXXX-XXXXX" autocomplete="off" spellcheck="false" maxlength="29">
+        <button class="btn btn-primary" id="checkBtn" onclick="checkCode()">Unlock</button>
+      </div>
+      <div class="gate-msg" id="gateMsg"></div>
+      <div class="downloads" id="downloads">
+        <a class="dl ready" id="dlMac" href="#" target="_blank" rel="noopener">
+          <div style="font-size:30px">🍎</div><div class="os">macOS</div>
+          <div class="meta">Apple Silicon (M1–M4) · ~285 MB</div><div class="pill">Download</div>
+        </a>
+        <div class="dl soon" id="dlWin">
+          <div style="font-size:30px">🪟</div><div class="os">Windows</div>
+          <div class="meta">Windows 10 / 11 (64-bit)</div><div class="pill">Coming soon</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="get" style="background:var(--bg2)">
+  <div class="wrap" style="text-align:center">
+    <div class="sec-head" style="margin-bottom:30px">
+      <div class="eyebrow">Get a license</div>
+      <h2>Ready to get started?</h2>
+      <p>Message us to buy. We'll reply with your license code, then you download and activate.</p>
+    </div>
+    <a class="btn btn-primary" id="contactBtn" href="#" style="font-size:18px;padding:16px 34px">✉️ Contact to buy a license</a>
+    <p style="color:var(--muted);margin-top:16px;font-size:14px">or email <a href="mailto:thatwebdeveloper1@gmail.com" style="color:var(--p2)">thatwebdeveloper1@gmail.com</a></p>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="sec-head"><div class="eyebrow">FAQ</div><h2>Good to know</h2></div>
+    <div class="faq">
+      <details><summary>What do I need to run it?</summary><p>A Mac with Apple Silicon (M1 or newer) on macOS 12+, or a 64-bit Windows 10/11 PC. For calls you'll want headphones. The app installs the free virtual audio cable it needs during setup.</p></details>
+      <details><summary>How do I use it on a call?</summary><p>Start VoxMorph and pick a voice. In your call app (WhatsApp, Zoom, Teams, Meet…), choose VoxMorph's audio cable as the microphone. That's it — the other person hears your changed voice.</p></details>
+      <details><summary>Is my voice sent to a server?</summary><p>No. All processing happens on your own computer. Your audio never leaves your machine.</p></details>
+      <details><summary>Can I use it on more than one computer?</summary><p>Each license works on the number of computers it was issued for (usually one). You can move it to a new computer by deactivating the old one in the app.</p></details>
+      <details><summary>Is cloning someone's voice allowed?</summary><p>Only use your own voice, a voice you have permission to use, or a fictional character. Impersonating a real person without consent is illegal in many places.</p></details>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="brand"><img src="img/favicon.png" style="width:26px;height:26px;border-radius:7px" alt="">VoxMorph</div>
+    <div>Real-time voice changer for macOS & Windows</div>
+    <div style="margin-top:10px">Licenses & support: <a href="mailto:thatwebdeveloper1@gmail.com">thatwebdeveloper1@gmail.com</a></div>
+    <p class="legal">VoxMorph is proprietary software, licensed not sold. Use it only with your own voice or a voice you have permission to use. © 2026 VoxMorph. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+const SUPABASE_URL = "https://rikmmimshspdwbmvcngk.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJpa21taW1zaHNwZHdibXZjbmdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM4OTY0NjIsImV4cCI6MjEwOTQ3MjQ2Mn0.biUGzJy7jwNiQU-_uiAo8nFw9RmdfDsVF8LhEgw_suU";
+const MAC_URL = "https://github.com/cyberwizard-dev/voxmorph-downloads/releases/download/v1.0/VoxMorph-1.0-mac-apple-silicon.zip";
+const CONTACT_EMAIL = "thatwebdeveloper1@gmail.com";
+
+// contact buttons -> pre-filled email
+const mailto = "mailto:" + CONTACT_EMAIL +
+  "?subject=" + encodeURIComponent("VoxMorph license — purchase") +
+  "&body=" + encodeURIComponent("Hi, I'd like to buy a VoxMorph license. Please send me the price and payment details.\n\nMy platform (Mac / Windows): \n");
+document.getElementById("contactBtn").href = mailto;
+document.getElementById("buyBtn").href = mailto;
+
+const REASONS = {
+  not_found:"We couldn't find that license code. Check for typos.",
+  revoked:"This license has been revoked. Please contact support.",
+  expired:"This license has expired. Please contact support to renew.",
+  invalid_request:"That doesn't look like a valid code format."
+};
+
+function fmt(v){
+  // light formatting help: uppercase, keep as typed
+  return v.toUpperCase().replace(/\s+/g,"");
+}
+const input = document.getElementById("codeInput");
+input.addEventListener("input", e => { const p=input.selectionStart; input.value=fmt(input.value); input.setSelectionRange(p,p); });
+input.addEventListener("keydown", e => { if(e.key==="Enter") checkCode(); });
+
+function setMsg(text, cls){ const m=document.getElementById("gateMsg"); m.textContent=text; m.className="gate-msg "+(cls||""); }
+
+async function checkCode(){
+  const code = fmt(input.value).trim();
+  const btn = document.getElementById("checkBtn");
+  document.getElementById("downloads").classList.remove("show");
+  if(code.length < 10){ setMsg("Enter your full license code.","err"); return; }
+  btn.disabled = true; setMsg("Checking…","busy");
+  try{
+    const res = await fetch(SUPABASE_URL + "/rest/v1/rpc/check_license", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json", "apikey":SUPABASE_ANON, "Authorization":"Bearer "+SUPABASE_ANON },
+      body: JSON.stringify({ p_key: code })
+    });
+    if(!res.ok) throw new Error("http "+res.status);
+    const data = await res.json();
+    if(data && data.valid){
+      unlock();
+      try{ localStorage.setItem("vm_unlocked","1"); }catch(e){}
+    }else{
+      setMsg(REASONS[data && data.reason] || "That license code isn't valid.","err");
+    }
+  }catch(err){
+    setMsg("Couldn't reach the license server. Check your connection and try again.","err");
+  }finally{ btn.disabled = false; }
+}
+
+function unlock(){
+  setMsg("✓ License verified — your download is unlocked below.","ok");
+  document.getElementById("dlMac").href = MAC_URL;
+  document.getElementById("downloads").classList.add("show");
+  document.getElementById("downloads").scrollIntoView({behavior:"smooth", block:"center"});
+}
+
+// remember an unlock on this device
+try{ if(localStorage.getItem("vm_unlocked")==="1"){ document.getElementById("dlMac").href=MAC_URL; document.getElementById("downloads").classList.add("show"); } }catch(e){}
+</script>
+</body>
+</html>
